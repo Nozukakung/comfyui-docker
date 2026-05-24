@@ -1,15 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-utils=/opt/supervisor-scripts/utils
 export PROC_NAME="${PROC_NAME:-comfyui}"
-if [[ -f "$utils/logging.sh" ]]; then
-  # Enables Vast.ai portal log capture when started by Supervisor.
-  . "$utils/logging.sh"
-fi
-if [[ -f "$utils/environment.sh" ]]; then
-  . "$utils/environment.sh"
-fi
 
 WORKSPACE_DIR="${WORKSPACE_DIR:-${WORKSPACE:-/workspace}}"
 COMFY_DIR="${COMFY_DIR:-$WORKSPACE_DIR/ComfyUI}"
