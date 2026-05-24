@@ -36,12 +36,14 @@ COPY comfy-setup/install_comfyui2.sh /opt/setup/install_comfyui2.sh
 COPY Wan2-2-Remix/install_wan22_remix_comfy.sh /opt/setup/install_wan22_remix_comfy.sh
 COPY Wan2-2-Remix/custom_nodes /opt/setup/custom_nodes
 COPY entrypoint.sh /entrypoint.sh
+COPY cuda-runtime-check.sh /opt/setup/cuda-runtime-check.sh
 COPY comfyui-start.sh /opt/supervisor-scripts/comfyui-start.sh
 COPY comfyui-supervisor.conf /etc/supervisor/conf.d/comfyui.conf
 
 RUN chmod +x \
     /opt/setup/install_comfyui2.sh \
     /opt/setup/install_wan22_remix_comfy.sh \
+    /opt/setup/cuda-runtime-check.sh \
     /entrypoint.sh \
     /opt/supervisor-scripts/comfyui-start.sh
 

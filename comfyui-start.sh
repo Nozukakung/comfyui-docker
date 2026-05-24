@@ -67,6 +67,13 @@ elif [[ "${INSTALL_MODELS:-1}" != "1" ]]; then
   echo "[comfyui] Skipping model download because INSTALL_MODELS=${INSTALL_MODELS:-1}"
 fi
 
+if [[ "${CUDA_RUNTIME_CHECK:-1}" = "1" ]]; then
+  echo "[comfyui] Checking CUDA runtime stack"
+  /opt/setup/cuda-runtime-check.sh
+else
+  echo "[comfyui] Skipping CUDA runtime stack check because CUDA_RUNTIME_CHECK=${CUDA_RUNTIME_CHECK:-1}"
+fi
+
 if [[ -x "$RUN_SCRIPT_PATH" ]]; then
   echo "[comfyui] Starting with $RUN_SCRIPT_PATH"
   exec "$RUN_SCRIPT_PATH"

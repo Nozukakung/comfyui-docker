@@ -42,6 +42,8 @@ docker run --gpus all --rm -it \
 - `INSTALL_FLUX_KONTEXT_MODEL` : `1` หรือ `0` (default `1`)
 - `COMFY_PORT` : default `8188`
 - `COMFY_EXTRA_ARGS` : default `--reserve-vram 2`
+- `CUDA_RUNTIME_CHECK` : `1` หรือ `0` (default `1`) ตรวจ torch/CUDA ก่อน start
+- `CUDA_RUNTIME_REPAIR` : `1` หรือ `0` (default `1`) ซ่อม PyTorch stack เมื่อ CUDA ใช้ไม่ได้หรือ wheel tag ไม่ตรง driver
 
 ## Vast.ai Template
 
