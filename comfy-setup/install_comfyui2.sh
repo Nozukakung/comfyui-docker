@@ -675,11 +675,20 @@ ensure_torch() {
   fi
 
   if [ "$FORCE_TORCH_INSTALL" != "1" ] && ! nvidia_runtime_ok; then
-    print_gpu_diagnostics
-    fail "NVIDIA GPU runtime is not available inside the container. Reinstalling PyTorch cannot fix this; restart the RunPod pod or create a new GPU pod/image with NVIDIA runtime attached, then confirm nvidia-smi works."
+    if [ "$SKIP_FINAL_CUDA_CHECK" = "1" ]; then
+      warn "NVIDIA GPU runtime is not available; continuing because SKIP_FINAL_CUDA_CHECK=1"
+    else
+      print_gpu_diagnostics
+      fail "NVIDIA GPU runtime is not available inside the container. Reinstalling PyTorch cannot fix this; restart the RunPod pod or create a new GPU pod/image with NVIDIA runtime attached, then confirm nvidia-smi works."
+    fi
   fi
 
   install_configured_pytorch_stack
+
+  if [ "$SKIP_FINAL_CUDA_CHECK" = "1" ]; then
+    log "Skipping PyTorch CUDA runtime availability check because SKIP_FINAL_CUDA_CHECK=1"
+    return 0
+  fi
 
   if ! torch_cuda_ok && ! probe_cuda_visibility; then
     print_gpu_diagnostics

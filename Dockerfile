@@ -50,6 +50,8 @@ RUN GPU_PREFLIGHT=0 \
     START_COMFY_AFTER_INSTALL=0 \
     INSTALL_MODELS=0 \
     UPDATE_REPOS=0 \
+    PYTORCH_INDEX_URL="https://download.pytorch.org/whl/cu128" \
+    PYTORCH_PACKAGES="torch==2.11.0+cu128 torchvision==0.26.0+cu128 torchaudio==2.11.0+cu128" \
     COMFY_DIR="$COMFY_DIR" \
     VENV_DIR="$VENV_DIR" \
     WORKSPACE_DIR="$WORKSPACE_DIR" \
