@@ -45,4 +45,24 @@ RUN chmod +x \
     /entrypoint.sh \
     /opt/supervisor-scripts/comfyui-start.sh
 
+RUN GPU_PREFLIGHT=0 \
+    SKIP_FINAL_CUDA_CHECK=1 \
+    START_COMFY_AFTER_INSTALL=0 \
+    INSTALL_MODELS=0 \
+    UPDATE_REPOS=0 \
+    COMFY_DIR="$COMFY_DIR" \
+    VENV_DIR="$VENV_DIR" \
+    WORKSPACE_DIR="$WORKSPACE_DIR" \
+    /opt/setup/install_comfyui2.sh \
+  && INSTALL_MODELS=0 \
+    INSTALL_NODES=1 \
+    UPDATE_REPOS=0 \
+    COMFY_DIR="$COMFY_DIR" \
+    VENV_DIR="$VENV_DIR" \
+    WORKSPACE_DIR="$WORKSPACE_DIR" \
+    /opt/setup/install_wan22_remix_comfy.sh \
+  && touch \
+    "$WORKSPACE_DIR/.comfy_base_setup_done" \
+    "$WORKSPACE_DIR/.comfy_wan_nodes_setup_done"
+
 EXPOSE 8188

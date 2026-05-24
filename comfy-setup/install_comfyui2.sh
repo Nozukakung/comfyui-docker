@@ -23,6 +23,7 @@ PYTORCH_INDEX_URL="${PYTORCH_INDEX_URL:-auto}"
 PYTORCH_PACKAGES="${PYTORCH_PACKAGES:-auto}"
 LOCK_TORCH_PACKAGES="${LOCK_TORCH_PACKAGES:-1}"
 GPU_PREFLIGHT="${GPU_PREFLIGHT:-1}"
+SKIP_FINAL_CUDA_CHECK="${SKIP_FINAL_CUDA_CHECK:-0}"
 ALLOW_BAD_GPU_PREFLIGHT="${ALLOW_BAD_GPU_PREFLIGHT:-0}"
 REQUIRE_NVIDIA0="${REQUIRE_NVIDIA0:-1}"
 PROMPT_ON_MISSING_NVIDIA0="${PROMPT_ON_MISSING_NVIDIA0:-1}"
@@ -1021,10 +1022,14 @@ main() {
   install_ltx_runtime_pins
   write_run_script
 
-  log "Final PyTorch CUDA check"
-  if ! torch_cuda_ok; then
-    print_gpu_diagnostics
-    fail "Final PyTorch CUDA check failed after installing ComfyUI/custom-node requirements."
+  if [ "$SKIP_FINAL_CUDA_CHECK" = "1" ]; then
+    log "Skipping final PyTorch CUDA check because SKIP_FINAL_CUDA_CHECK=1"
+  else
+    log "Final PyTorch CUDA check"
+    if ! torch_cuda_ok; then
+      print_gpu_diagnostics
+      fail "Final PyTorch CUDA check failed after installing ComfyUI/custom-node requirements."
+    fi
   fi
 
   df -h "$WORKSPACE_DIR" || true

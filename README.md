@@ -4,8 +4,8 @@ Image นี้ต่อยอดจาก `vastai/pytorch:cuda-12.8.1-auto` แ
 
 Image นี้จะ:
 
-1. รัน `install_comfyui2.sh` ครั้งแรกเพื่อสร้าง ComfyUI + venv
-2. รัน `install_wan22_remix_comfy.sh` ครั้งแรกเพื่อดึง nodes/models
+1. ติดตั้ง ComfyUI + venv + custom nodes/deps ระหว่าง Docker build
+2. ตอน container start ครั้งแรก จะโหลดเฉพาะ models ถ้า `INSTALL_MODELS=1`
 3. เริ่ม ComfyUI ที่พอร์ต `8188` ผ่าน Supervisor ของ Vast.ai
 
 ## Build
@@ -50,4 +50,8 @@ docker run --gpus all --rm -it \
 - ถ้า template เดิมใส่ `entrypoint.sh` ไว้ image นี้ยังรองรับ โดย `/entrypoint.sh` จะส่งต่อไปยัง entrypoint ของ Vast.ai base ก่อน
 - ComfyUI ถูกลงทะเบียนใน `PORTAL_CONFIG` เป็น `localhost:8188:8188:/:ComfyUI`
 
-หมายเหตุ: Setup จะทำครั้งแรกเท่านั้น โดยมี sentinel ที่ `/workspace/.comfy_wan_setup_done`
+หมายเหตุ: Setup แยก sentinel เป็น:
+
+- `/workspace/.comfy_base_setup_done` สำหรับ ComfyUI base
+- `/workspace/.comfy_wan_nodes_setup_done` สำหรับ custom nodes/deps
+- `/workspace/.comfy_wan_models_setup_done` สำหรับ models
