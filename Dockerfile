@@ -1,9 +1,11 @@
+# syntax=docker/dockerfile:1.7
 FROM vastai/pytorch:cuda-12.8.1-auto
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV WORKSPACE_DIR=/workspace
 ENV COMFY_DIR=/workspace/ComfyUI
 ENV VENV_DIR=/workspace/venv
+ENV MODEL_STORE_DIR=/opt/comfy-models
 ENV START_COMFY_AFTER_INSTALL=0
 ENV INSTALL_MODELS=1
 ENV INSTALL_NODES=1
@@ -68,5 +70,21 @@ RUN GPU_PREFLIGHT=0 \
   && touch \
     "$WORKSPACE_DIR/.comfy_base_setup_done" \
     "$WORKSPACE_DIR/.comfy_wan_nodes_setup_done"
+
+RUN --mount=type=secret,id=hf_token,required=false \
+    --mount=type=secret,id=civitai_token,required=false \
+    HF_TOKEN="$(cat /run/secrets/hf_token 2>/dev/null || true)" \
+    CIVITAI_TOKEN="$(cat /run/secrets/civitai_token 2>/dev/null || true)" \
+    INSTALL_MODELS=1 \
+    INSTALL_NODES=0 \
+    INSTALL_NODE_REQUIREMENTS=0 \
+    UPDATE_REPOS=0 \
+    MODEL_STORE_DIR="$MODEL_STORE_DIR" \
+    COMFY_DIR="$COMFY_DIR" \
+    VENV_DIR="$VENV_DIR" \
+    WORKSPACE_DIR="$WORKSPACE_DIR" \
+    /opt/setup/install_wan22_remix_comfy.sh \
+  && touch \
+    "$MODEL_STORE_DIR/.comfy_wan_models_setup_done"
 
 EXPOSE 8188

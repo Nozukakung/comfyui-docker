@@ -8,13 +8,38 @@ COMFY_DIR="${COMFY_DIR:-$WORKSPACE_DIR/ComfyUI}"
 VENV_DIR="${VENV_DIR:-$WORKSPACE_DIR/venv}"
 BASE_SETUP_SENTINEL="${BASE_SETUP_SENTINEL:-$WORKSPACE_DIR/.comfy_base_setup_done}"
 WAN_NODES_SENTINEL="${WAN_NODES_SENTINEL:-$WORKSPACE_DIR/.comfy_wan_nodes_setup_done}"
-MODELS_SENTINEL="${MODELS_SENTINEL:-$WORKSPACE_DIR/.comfy_wan_models_setup_done}"
+MODEL_STORE_DIR="${MODEL_STORE_DIR:-/opt/comfy-models}"
+MODELS_SENTINEL="${MODELS_SENTINEL:-$MODEL_STORE_DIR/.comfy_wan_models_setup_done}"
 RUN_SCRIPT_PATH="${RUN_SCRIPT_PATH:-$WORKSPACE_DIR/run_comfy.sh}"
 COMFY_PORT="${COMFY_PORT:-${PORT:-8188}}"
 COMFY_LISTEN="${COMFY_LISTEN:-0.0.0.0}"
 COMFY_EXTRA_ARGS="${COMFY_EXTRA_ARGS:---reserve-vram 2}"
 
 mkdir -p "$WORKSPACE_DIR"
+
+link_preloaded_models() {
+  if [[ ! -d "$MODEL_STORE_DIR" ]]; then
+    return 0
+  fi
+
+  mkdir -p "$COMFY_DIR"
+
+  if [[ -L "$COMFY_DIR/models" ]]; then
+    if [[ "$(readlink "$COMFY_DIR/models")" != "$MODEL_STORE_DIR" ]]; then
+      ln -sfn "$MODEL_STORE_DIR" "$COMFY_DIR/models"
+    fi
+    return 0
+  fi
+
+  if [[ -e "$COMFY_DIR/models" ]]; then
+    if find "$COMFY_DIR/models" \( -type f -o -type l \) -print -quit 2>/dev/null | grep -q .; then
+      return 0
+    fi
+    rm -rf "$COMFY_DIR/models"
+  fi
+
+  ln -s "$MODEL_STORE_DIR" "$COMFY_DIR/models"
+}
 
 if [[ ! -f "$BASE_SETUP_SENTINEL" ]]; then
   if [[ -f "$COMFY_DIR/main.py" && -x "$VENV_DIR/bin/python" && -x "$RUN_SCRIPT_PATH" ]]; then
@@ -52,6 +77,7 @@ if [[ "${INSTALL_MODELS:-1}" = "1" && ! -f "$MODELS_SENTINEL" ]]; then
   COMFY_DIR="$COMFY_DIR" \
   VENV_DIR="$VENV_DIR" \
   WORKSPACE_DIR="$WORKSPACE_DIR" \
+  MODEL_STORE_DIR="$MODEL_STORE_DIR" \
   HF_TOKEN="${HF_TOKEN:-${HUGGINGFACE_HUB_TOKEN:-}}" \
   CIVITAI_TOKEN="${CIVITAI_TOKEN:-}" \
   INSTALL_MODELS=1 \
@@ -63,9 +89,13 @@ if [[ "${INSTALL_MODELS:-1}" = "1" && ! -f "$MODELS_SENTINEL" ]]; then
   /opt/setup/install_wan22_remix_comfy.sh
 
   touch "$MODELS_SENTINEL"
+elif [[ "${INSTALL_MODELS:-1}" = "1" ]]; then
+  echo "[comfyui] Models already preloaded at $MODEL_STORE_DIR"
 elif [[ "${INSTALL_MODELS:-1}" != "1" ]]; then
   echo "[comfyui] Skipping model download because INSTALL_MODELS=${INSTALL_MODELS:-1}"
 fi
+
+link_preloaded_models
 
 if [[ "${CUDA_RUNTIME_CHECK:-1}" = "1" ]]; then
   echo "[comfyui] Checking CUDA runtime stack"

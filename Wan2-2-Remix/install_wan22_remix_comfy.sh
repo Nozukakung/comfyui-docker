@@ -5,6 +5,7 @@ WORKSPACE_DIR="${WORKSPACE_DIR:-/workspace}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMFY_DIR="${COMFY_DIR:-$WORKSPACE_DIR/ComfyUI}"
 VENV_DIR="${VENV_DIR:-$WORKSPACE_DIR/venv}"
+MODEL_STORE_DIR="${MODEL_STORE_DIR:-$COMFY_DIR/models}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 INSTALL_NODES="${INSTALL_NODES:-1}"
 INSTALL_NODE_REQUIREMENTS="${INSTALL_NODE_REQUIREMENTS:-1}"
@@ -68,11 +69,11 @@ require_base_paths() {
   [ -d "$COMFY_DIR" ] || fail "ComfyUI directory not found: $COMFY_DIR"
   mkdir -p \
     "$COMFY_DIR/custom_nodes" \
-    "$COMFY_DIR/models/diffusion_models" \
-    "$COMFY_DIR/models/text_encoders" \
-    "$COMFY_DIR/models/LLM/Qwen-VL" \
-    "$COMFY_DIR/models/loras" \
-    "$COMFY_DIR/models/vae" \
+    "$MODEL_STORE_DIR/diffusion_models" \
+    "$MODEL_STORE_DIR/text_encoders" \
+    "$MODEL_STORE_DIR/LLM/Qwen-VL" \
+    "$MODEL_STORE_DIR/loras" \
+    "$MODEL_STORE_DIR/vae" \
     "$HF_HOME"
   command -v git >/dev/null 2>&1 || fail "git not found"
 }
@@ -419,50 +420,50 @@ install_models() {
   hf_download_to_file \
     "FX-FeiHou/wan2.2-Remix" \
     "NSFW/Wan2.2_Remix_NSFW_i2v_14b_high_lighting_fp8_e4m3fn_v3.0.safetensors" \
-    "$COMFY_DIR/models/diffusion_models" \
+    "$MODEL_STORE_DIR/diffusion_models" \
     "Wan2.2_Remix_NSFW_i2v_14b_high_lighting_fp8_e4m3fn_v3.0.safetensors"
 
   hf_download_to_file \
     "FX-FeiHou/wan2.2-Remix" \
     "NSFW/Wan2.2_Remix_NSFW_i2v_14b_low_lighting_fp8_e4m3fn_v3.0.safetensors" \
-    "$COMFY_DIR/models/diffusion_models" \
+    "$MODEL_STORE_DIR/diffusion_models" \
     "Wan2.2_Remix_NSFW_i2v_14b_low_lighting_fp8_e4m3fn_v3.0.safetensors"
 
   hf_download_to_file \
     "NSFW-API/NSFW-Wan-UMT5-XXL" \
     "nsfw_wan_umt5-xxl_fp8_scaled.safetensors" \
-    "$COMFY_DIR/models/text_encoders" \
+    "$MODEL_STORE_DIR/text_encoders" \
     "nsfw_wan_umt5-xxl_fp8_scaled.safetensors"
 
   hf_download_to_file \
     "Comfy-Org/Wan_2.2_ComfyUI_Repackaged" \
     "split_files/vae/wan_2.1_vae.safetensors" \
-    "$COMFY_DIR/models/vae" \
+    "$MODEL_STORE_DIR/vae" \
     "wan_2.1_vae.safetensors"
 
   if [ "$INSTALL_FLUX_KONTEXT_MODEL" = "1" ]; then
     hf_download_to_file \
       "Comfy-Org/flux1-kontext-dev_ComfyUI" \
       "split_files/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors" \
-      "$COMFY_DIR/models/diffusion_models" \
+      "$MODEL_STORE_DIR/diffusion_models" \
       "flux1-dev-kontext_fp8_scaled.safetensors"
 
     hf_download_to_file \
       "Comfy-Org/Lumina_Image_2.0_Repackaged" \
       "split_files/vae/ae.safetensors" \
-      "$COMFY_DIR/models/vae" \
+      "$MODEL_STORE_DIR/vae" \
       "ae.safetensors"
 
     hf_download_to_file \
       "comfyanonymous/flux_text_encoders" \
       "clip_l.safetensors" \
-      "$COMFY_DIR/models/text_encoders" \
+      "$MODEL_STORE_DIR/text_encoders" \
       "clip_l.safetensors"
 
     hf_download_to_file \
       "comfyanonymous/flux_text_encoders" \
       "t5xxl_fp8_e4m3fn_scaled.safetensors" \
-      "$COMFY_DIR/models/text_encoders" \
+      "$MODEL_STORE_DIR/text_encoders" \
       "t5xxl_fp8_e4m3fn_scaled.safetensors"
   else
     log "Skipping Flux Kontext models because INSTALL_FLUX_KONTEXT_MODEL=$INSTALL_FLUX_KONTEXT_MODEL"
@@ -471,7 +472,7 @@ install_models() {
   if [ "$INSTALL_QWENVL_MODEL" = "1" ]; then
     hf_snapshot_to_dir \
       "$QWENVL_REPO_ID" \
-      "$COMFY_DIR/models/LLM/Qwen-VL/$QWENVL_MODEL_NAME"
+      "$MODEL_STORE_DIR/LLM/Qwen-VL/$QWENVL_MODEL_NAME"
   else
     log "Skipping QwenVL model because INSTALL_QWENVL_MODEL=$INSTALL_QWENVL_MODEL"
   fi
@@ -481,18 +482,18 @@ verify_install() {
   log "Verifying target files"
 
   local required_files=(
-    "$COMFY_DIR/models/diffusion_models/Wan2.2_Remix_NSFW_i2v_14b_high_lighting_fp8_e4m3fn_v3.0.safetensors"
-    "$COMFY_DIR/models/diffusion_models/Wan2.2_Remix_NSFW_i2v_14b_low_lighting_fp8_e4m3fn_v3.0.safetensors"
-    "$COMFY_DIR/models/text_encoders/nsfw_wan_umt5-xxl_fp8_scaled.safetensors"
-    "$COMFY_DIR/models/vae/wan_2.1_vae.safetensors"
+    "$MODEL_STORE_DIR/diffusion_models/Wan2.2_Remix_NSFW_i2v_14b_high_lighting_fp8_e4m3fn_v3.0.safetensors"
+    "$MODEL_STORE_DIR/diffusion_models/Wan2.2_Remix_NSFW_i2v_14b_low_lighting_fp8_e4m3fn_v3.0.safetensors"
+    "$MODEL_STORE_DIR/text_encoders/nsfw_wan_umt5-xxl_fp8_scaled.safetensors"
+    "$MODEL_STORE_DIR/vae/wan_2.1_vae.safetensors"
   )
   local flux_required_files=(
-    "$COMFY_DIR/models/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors"
-    "$COMFY_DIR/models/vae/ae.safetensors"
-    "$COMFY_DIR/models/text_encoders/clip_l.safetensors"
-    "$COMFY_DIR/models/text_encoders/t5xxl_fp8_e4m3fn_scaled.safetensors"
+    "$MODEL_STORE_DIR/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors"
+    "$MODEL_STORE_DIR/vae/ae.safetensors"
+    "$MODEL_STORE_DIR/text_encoders/clip_l.safetensors"
+    "$MODEL_STORE_DIR/text_encoders/t5xxl_fp8_e4m3fn_scaled.safetensors"
   )
-  local qwen_model_dir="$COMFY_DIR/models/LLM/Qwen-VL/$QWENVL_MODEL_NAME"
+  local qwen_model_dir="$MODEL_STORE_DIR/LLM/Qwen-VL/$QWENVL_MODEL_NAME"
   local required_dirs=(
     "$COMFY_DIR/custom_nodes/rgthree-comfy"
     "$COMFY_DIR/custom_nodes/ComfyUI-VideoHelperSuite"
@@ -552,13 +553,14 @@ print_summary() {
   log "ComfyUI: $COMFY_DIR"
   log "Custom nodes: $COMFY_DIR/custom_nodes"
   log "Story Shot tools: $COMFY_DIR/custom_nodes/ComfyUI-WanStoryShotTools"
-  log "Diffusion models: $COMFY_DIR/models/diffusion_models"
-  log "Text encoders: $COMFY_DIR/models/text_encoders"
-  log "LoRAs: $COMFY_DIR/models/loras"
-  log "VAE: $COMFY_DIR/models/vae"
-  log "QwenVL model: $COMFY_DIR/models/LLM/Qwen-VL/$QWENVL_MODEL_NAME"
+  log "Diffusion models: $MODEL_STORE_DIR/diffusion_models"
+  log "Text encoders: $MODEL_STORE_DIR/text_encoders"
+  log "LoRAs: $MODEL_STORE_DIR/loras"
+  log "VAE: $MODEL_STORE_DIR/vae"
+  log "Model store: $MODEL_STORE_DIR"
+  log "QwenVL model: $MODEL_STORE_DIR/LLM/Qwen-VL/$QWENVL_MODEL_NAME"
   if [ "$INSTALL_FLUX_KONTEXT_MODEL" = "1" ]; then
-    log "Flux Kontext model: $COMFY_DIR/models/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors"
+    log "Flux Kontext model: $MODEL_STORE_DIR/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors"
   fi
   log "Restart ComfyUI, then hard refresh browser with Ctrl+F5."
 }
@@ -571,6 +573,9 @@ main() {
   patch_videohelpersuite_frontend
   install_models
   verify_install
+  if [ "$INSTALL_MODELS" = "1" ]; then
+    touch "$MODEL_STORE_DIR/.comfy_wan_models_setup_done"
+  fi
   print_summary
 }
 

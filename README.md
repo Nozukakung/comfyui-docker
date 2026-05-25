@@ -1,59 +1,76 @@
-# Vast.ai ComfyUI (Wan2.2 Remix) Docker
+# ComfyUI Docker (Wan2.2 Remix)
 
-Image นี้ต่อยอดจาก `vastai/pytorch:cuda-12.8.1-auto` และยังใช้ startup/portal ของ Vast.ai base image เดิม โดยเพิ่ม ComfyUI เป็น Supervisor service.
+Image นี้ต่อยอดจาก `vastai/pytorch:cuda-12.8.1-auto` และใช้ ComfyUI + Supervisor เป็นหลัก
 
-Image นี้จะ:
+สิ่งที่ repo นี้ทำตอน build:
 
-1. ติดตั้ง ComfyUI + venv + custom nodes/deps ระหว่าง Docker build
-2. ตอน container start ครั้งแรก จะโหลดเฉพาะ models ถ้า `INSTALL_MODELS=1`
-3. เริ่ม ComfyUI ที่พอร์ต `8188` ผ่าน Supervisor ของ Vast.ai
+1. ติดตั้ง ComfyUI + venv + custom nodes/deps
+2. ดาวน์โหลดและ bake models ลง image ที่ `/opt/comfy-models`
+3. ตั้งค่าให้ตอนรันสามารถ symlink models กลับเข้า `/workspace/ComfyUI/models`
+4. เปิด ComfyUI ที่พอร์ต `8188`
+
+## โครงสร้างหลัก
+
+- [`Dockerfile`](/data/data/com.termux/files/home/Stable-Diffusion/vast-comfyui-docker/Dockerfile)
+- [`comfyui-start.sh`](/data/data/com.termux/files/home/Stable-Diffusion/vast-comfyui-docker/comfyui-start.sh)
+- [`Wan2-2-Remix/install_wan22_remix_comfy.sh`](/data/data/com.termux/files/home/Stable-Diffusion/vast-comfyui-docker/Wan2-2-Remix/install_wan22_remix_comfy.sh)
+- [`.github/workflows/docker-build-push.yml`](/data/data/com.termux/files/home/Stable-Diffusion/vast-comfyui-docker/.github/workflows/docker-build-push.yml)
 
 ## Build
 
+ต้องมี Docker ที่รองรับ BuildKit
+
 ```bash
-cd /home/jakkrit/Stable-Diffusion/vast-comfyui-docker
-docker build -t <dockerhub-username>/comfyui-wan22:latest .
+docker build \
+  --secret id=hf_token,env=HF_TOKEN \
+  --secret id=civitai_token,env=CIVITAI_TOKEN \
+  -t <dockerhub-username>/comfyui-docker:latest \
+  .
 ```
+
+ถ้าไม่ต้องการ bake models บางชุด ให้ปรับตัวแปรใน Dockerfile หรือสคริปต์ setup ตามที่ต้องการก่อน build
 
 ## Push
 
 ```bash
-docker push <dockerhub-username>/comfyui-wan22:latest
+docker push <dockerhub-username>/comfyui-docker:latest
 ```
 
-## Run local test (ต้องมี NVIDIA runtime)
+## Run
 
 ```bash
 docker run --gpus all --rm -it \
   -p 8188:8188 \
-  -e HF_TOKEN=hf_xxx \
-  -e CIVITAI_TOKEN=civitai_xxx \
   -v comfy_workspace:/workspace \
-  <dockerhub-username>/comfyui-wan22:latest
+  <dockerhub-username>/comfyui-docker:latest
 ```
 
-## Vast.ai Environment Variables
+## ตัวแปรสำคัญ
 
-- `HF_TOKEN` : Hugging Face token
-- `CIVITAI_TOKEN` : Civitai token (ถ้ามี model ที่ต้องใช้)
 - `INSTALL_MODELS` : `1` หรือ `0` (default `1`)
 - `INSTALL_NODES` : `1` หรือ `0` (default `1`)
 - `UPDATE_REPOS` : `1` หรือ `0` (default `1`)
 - `INSTALL_FLUX_KONTEXT_MODEL` : `1` หรือ `0` (default `1`)
+- `MODEL_STORE_DIR` : ตำแหน่งเก็บ model store ตอน build/runtime (default `/opt/comfy-models`)
+- `HF_TOKEN` / `CIVITAI_TOKEN` : ใช้ตอน build หรือ runtime ถ้าต้องดาวน์โหลด model เพิ่ม
 - `COMFY_PORT` : default `8188`
 - `COMFY_EXTRA_ARGS` : default `--reserve-vram 2`
 - `CUDA_RUNTIME_CHECK` : `1` หรือ `0` (default `1`) ตรวจ torch/CUDA ก่อน start
 - `CUDA_RUNTIME_REPAIR` : `1` หรือ `0` (default `1`) ซ่อม PyTorch stack เมื่อ CUDA ใช้ไม่ได้หรือ wheel tag ไม่ตรง driver
 
-## Vast.ai Template
+## GitHub Actions
 
-- ถ้าไม่จำเป็น ให้ใช้ entrypoint/cmd default ของ base image
-- ถ้าตั้งค่า Start command/Entrypoint เอง ให้ใช้ `/opt/instance-tools/bin/entrypoint.sh`
-- ถ้า template เดิมใส่ `entrypoint.sh` ไว้ image นี้ยังรองรับ โดย `/entrypoint.sh` จะส่งต่อไปยัง entrypoint ของ Vast.ai base ก่อน
-- ComfyUI ถูกลงทะเบียนใน `PORTAL_CONFIG` เป็น `localhost:8188:8188:/:ComfyUI`
+Workflow build/push อยู่ที่ [`.github/workflows/docker-build-push.yml`](/data/data/com.termux/files/home/Stable-Diffusion/vast-comfyui-docker/.github/workflows/docker-build-push.yml)
 
-หมายเหตุ: Setup แยก sentinel เป็น:
+ต้องมี GitHub Secrets อย่างน้อย:
+
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN`
+- `HF_TOKEN`
+- `CIVITAI_TOKEN` ถ้ามีโมเดลที่ต้องใช้ token นี้
+
+## หมายเหตุ
 
 - `/workspace/.comfy_base_setup_done` สำหรับ ComfyUI base
 - `/workspace/.comfy_wan_nodes_setup_done` สำหรับ custom nodes/deps
-- `/workspace/.comfy_wan_models_setup_done` สำหรับ models
+- `/opt/comfy-models/.comfy_wan_models_setup_done` สำหรับ models ที่ bake ไว้ใน image
