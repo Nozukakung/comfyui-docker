@@ -25,6 +25,7 @@ docker build -t <dockerhub-username>/comfyui-docker:latest .
 ```
 
 image นี้จะติดตั้ง dependencies และ custom nodes ตอน build แต่จะยังไม่ดาวน์โหลด models จนกว่าจะ start container ครั้งแรก
+ตอน runtime จะมี verifier ตรวจ custom nodes, QwenVL config, CUDA stack, และ prompt-support models ที่ workflow ต้องใช้ ถ้าขาดจะ fail ทันที
 
 ## Push
 
@@ -49,6 +50,8 @@ docker run --gpus all --rm -it \
 - `INSTALL_NODES` : `1` หรือ `0` (default `1`)
 - `UPDATE_REPOS` : `1` หรือ `0` (default `1`)
 - `INSTALL_FLUX_KONTEXT_MODEL` : `1` หรือ `0` (default `1`)
+- `INSTALL_PROMPT_SUPPORT_MODELS` : `1` หรือ `0` (default `1`) ดาวน์โหลด `clip_interrogator` และ prompt-generator assets ที่บาง node ใช้
+- `INSTALL_LLAMACPP` : `1` หรือ `0` (default `1`) ติดตั้ง `llama-cpp-python` สำหรับ QwenVL prompt enhancer
 - `MODEL_STORE_DIR` : ตำแหน่งเก็บ model store ตอน build/runtime (default `/opt/comfy-models`)
 - `HF_TOKEN` / `CIVITAI_TOKEN` : ใช้ตอน runtime ถ้าต้องดาวน์โหลด model เพิ่ม
 - `COMFY_PORT` : default `8188`

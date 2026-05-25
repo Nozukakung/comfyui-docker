@@ -13,6 +13,8 @@ INSTALL_MODELS="${INSTALL_MODELS:-1}"
 INSTALL_QWENVL="${INSTALL_QWENVL:-1}"
 INSTALL_QWENVL_MODEL="${INSTALL_QWENVL_MODEL:-1}"
 INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}"
+INSTALL_PROMPT_SUPPORT_MODELS="${INSTALL_PROMPT_SUPPORT_MODELS:-1}"
+INSTALL_LLAMACPP="${INSTALL_LLAMACPP:-1}"
 QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-c_abliterated-v3}"
 QWENVL_REPO_ID="${QWENVL_REPO_ID:-prithivMLmods/Qwen3-VL-8B-Instruct-c_abliterated-v3}"
 UPDATE_REPOS="${UPDATE_REPOS:-1}"
@@ -239,6 +241,10 @@ install_custom_nodes() {
     IFS='|' read -r repo_url target_dir label <<< "$entry"
     install_requirements_without_gpu_packages "$target_dir/requirements.txt" "$label"
   done
+
+  if [ "$INSTALL_QWENVL" = "1" ] && [ "$INSTALL_LLAMACPP" = "1" ]; then
+    ensure_python_module "llama_cpp" "llama-cpp-python"
+  fi
 }
 
 write_qwenvl_custom_models() {
@@ -337,6 +343,25 @@ ensure_hf_cli() {
   log "Installing huggingface_hub CLI"
   pip_install --upgrade huggingface_hub
   hf_cmd >/dev/null 2>&1 || fail "hf CLI not found after installing huggingface_hub"
+}
+
+ensure_python_module() {
+  local module="$1"
+  local package="${2:-$1}"
+
+  if "$(python_cmd)" - "$module" <<'PY'
+import importlib.util
+import sys
+
+module = sys.argv[1]
+raise SystemExit(0 if importlib.util.find_spec(module) else 1)
+PY
+  then
+    return 0
+  fi
+
+  log "Installing Python dependency for module $module: $package"
+  pip_install "$package"
 }
 
 hf_download_to_file() {
@@ -476,76 +501,41 @@ install_models() {
   else
     log "Skipping QwenVL model because INSTALL_QWENVL_MODEL=$INSTALL_QWENVL_MODEL"
   fi
+
+  if [ "$INSTALL_PROMPT_SUPPORT_MODELS" = "1" ]; then
+    hf_snapshot_to_dir \
+      "Salesforce/blip-image-captioning-base" \
+      "$MODEL_STORE_DIR/clip_interrogator/Salesforce/blip-image-captioning-base"
+
+    hf_snapshot_to_dir \
+      "succinctly/text2image-prompt-generator" \
+      "$MODEL_STORE_DIR/prompt_generator/text2image-prompt-generator"
+
+    hf_snapshot_to_dir \
+      "Helsinki-NLP/opus-mt-zh-en" \
+      "$MODEL_STORE_DIR/prompt_generator/opus-mt-zh-en"
+  else
+    log "Skipping prompt-support models because INSTALL_PROMPT_SUPPORT_MODELS=$INSTALL_PROMPT_SUPPORT_MODELS"
+  fi
 }
 
 verify_install() {
-  log "Verifying target files"
-
-  local required_files=(
-    "$MODEL_STORE_DIR/diffusion_models/Wan2.2_Remix_NSFW_i2v_14b_high_lighting_fp8_e4m3fn_v3.0.safetensors"
-    "$MODEL_STORE_DIR/diffusion_models/Wan2.2_Remix_NSFW_i2v_14b_low_lighting_fp8_e4m3fn_v3.0.safetensors"
-    "$MODEL_STORE_DIR/text_encoders/nsfw_wan_umt5-xxl_fp8_scaled.safetensors"
-    "$MODEL_STORE_DIR/vae/wan_2.1_vae.safetensors"
-  )
-  local flux_required_files=(
-    "$MODEL_STORE_DIR/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors"
-    "$MODEL_STORE_DIR/vae/ae.safetensors"
-    "$MODEL_STORE_DIR/text_encoders/clip_l.safetensors"
-    "$MODEL_STORE_DIR/text_encoders/t5xxl_fp8_e4m3fn_scaled.safetensors"
-  )
-  local qwen_model_dir="$MODEL_STORE_DIR/LLM/Qwen-VL/$QWENVL_MODEL_NAME"
-  local required_dirs=(
-    "$COMFY_DIR/custom_nodes/rgthree-comfy"
-    "$COMFY_DIR/custom_nodes/ComfyUI-VideoHelperSuite"
-    "$COMFY_DIR/custom_nodes/ComfyUI_essentials"
-    "$COMFY_DIR/custom_nodes/ComfyUI-KJNodes"
-    "$COMFY_DIR/custom_nodes/ComfyUI-Custom-Scripts"
-    "$COMFY_DIR/custom_nodes/ComfyUI_LayerStyle"
-    "$COMFY_DIR/custom_nodes/comfyui-mixlab-nodes"
-    "$COMFY_DIR/custom_nodes/ComfyUI_RH_LLM_API"
-    "$COMFY_DIR/custom_nodes/Comfyui-PainterVRAM"
-    "$COMFY_DIR/custom_nodes/ComfyUI-WanStoryShotTools"
-  )
-  if [ "$INSTALL_QWENVL" = "1" ]; then
-    required_dirs+=("$COMFY_DIR/custom_nodes/ComfyUI-QwenVL")
-  fi
-  local path missing=0
-
-  if [ "$INSTALL_MODELS" = "1" ]; then
-    for path in "${required_files[@]}"; do
-      if [ ! -f "$path" ]; then
-        warn "Missing model: $path"
-        missing=1
-      fi
-    done
-    if [ "$INSTALL_FLUX_KONTEXT_MODEL" = "1" ]; then
-      for path in "${flux_required_files[@]}"; do
-        if [ ! -f "$path" ]; then
-          warn "Missing Flux Kontext model: $path"
-          missing=1
-        fi
-      done
-    fi
-    if [ "$INSTALL_QWENVL_MODEL" = "1" ] && ! compgen -G "$qwen_model_dir/*.safetensors" >/dev/null && ! compgen -G "$qwen_model_dir/*.bin" >/dev/null; then
-      warn "Missing QwenVL model snapshot: $qwen_model_dir"
-      missing=1
-    fi
-  fi
-
-  if [ "$INSTALL_NODES" = "1" ]; then
-    for path in "${required_dirs[@]}"; do
-      if [ ! -d "$path" ]; then
-        warn "Missing custom node: $path"
-        missing=1
-      fi
-    done
-    if [ ! -f "$COMFY_DIR/custom_nodes/ComfyUI-WanStoryShotTools/__init__.py" ]; then
-      warn "Missing Story Shot tools entrypoint: $COMFY_DIR/custom_nodes/ComfyUI-WanStoryShotTools/__init__.py"
-      missing=1
-    fi
-  fi
-
-  [ "$missing" = "0" ] || fail "Verification failed"
+  local checker="$SCRIPT_DIR/verify_wan22_remix_ready.sh"
+  [ -x "$checker" ] || fail "Verification helper not found or not executable: $checker"
+  log "Verifying installed files with $checker"
+  COMFY_DIR="$COMFY_DIR" \
+  VENV_DIR="$VENV_DIR" \
+  WORKSPACE_DIR="$WORKSPACE_DIR" \
+  MODEL_STORE_DIR="$MODEL_STORE_DIR" \
+  INSTALL_NODES="$INSTALL_NODES" \
+  INSTALL_MODELS="$INSTALL_MODELS" \
+  INSTALL_QWENVL="$INSTALL_QWENVL" \
+  INSTALL_QWENVL_MODEL="$INSTALL_QWENVL_MODEL" \
+  INSTALL_FLUX_KONTEXT_MODEL="$INSTALL_FLUX_KONTEXT_MODEL" \
+  INSTALL_PROMPT_SUPPORT_MODELS="$INSTALL_PROMPT_SUPPORT_MODELS" \
+  INSTALL_LLAMACPP="$INSTALL_LLAMACPP" \
+  QWENVL_MODEL_NAME="$QWENVL_MODEL_NAME" \
+  "$checker"
 }
 
 print_summary() {

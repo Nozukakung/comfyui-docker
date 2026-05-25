@@ -24,7 +24,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     python3-venv \
     python3-dev \
+    cmake \
     build-essential \
+    ninja-build \
+    pkg-config \
     ffmpeg \
     libgl1 \
     libglib2.0-0 \
@@ -36,6 +39,7 @@ WORKDIR /opt/setup
 
 COPY comfy-setup/install_comfyui2.sh /opt/setup/install_comfyui2.sh
 COPY Wan2-2-Remix/install_wan22_remix_comfy.sh /opt/setup/install_wan22_remix_comfy.sh
+COPY Wan2-2-Remix/verify_wan22_remix_ready.sh /opt/setup/verify_wan22_remix_ready.sh
 COPY Wan2-2-Remix/custom_nodes /opt/setup/custom_nodes
 COPY entrypoint.sh /entrypoint.sh
 COPY cuda-runtime-check.sh /opt/setup/cuda-runtime-check.sh
@@ -45,6 +49,7 @@ COPY comfyui-supervisor.conf /etc/supervisor/conf.d/comfyui.conf
 RUN chmod +x \
     /opt/setup/install_comfyui2.sh \
     /opt/setup/install_wan22_remix_comfy.sh \
+    /opt/setup/verify_wan22_remix_ready.sh \
     /opt/setup/cuda-runtime-check.sh \
     /entrypoint.sh \
     /opt/supervisor-scripts/comfyui-start.sh
