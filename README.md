@@ -5,7 +5,7 @@ Image นี้ต่อยอดจาก `vastai/pytorch:cuda-12.8.1-auto` แ
 สิ่งที่ repo นี้ทำตอน build:
 
 1. ติดตั้ง ComfyUI + venv + custom nodes/deps
-2. ดาวน์โหลดและ bake models ลง image ที่ `/opt/comfy-models`
+2. ติดตั้งระบบให้ตอนรันสามารถดาวน์โหลด models ครั้งแรกไปไว้ที่ `/opt/comfy-models`
 3. ตั้งค่าให้ตอนรันสามารถ symlink models กลับเข้า `/workspace/ComfyUI/models`
 4. เปิด ComfyUI ที่พอร์ต `8188`
 
@@ -21,14 +21,10 @@ Image นี้ต่อยอดจาก `vastai/pytorch:cuda-12.8.1-auto` แ
 ต้องมี Docker ที่รองรับ BuildKit
 
 ```bash
-docker build \
-  --secret id=hf_token,env=HF_TOKEN \
-  --secret id=civitai_token,env=CIVITAI_TOKEN \
-  -t <dockerhub-username>/comfyui-docker:latest \
-  .
+docker build -t <dockerhub-username>/comfyui-docker:latest .
 ```
 
-ถ้าไม่ต้องการ bake models บางชุด ให้ปรับตัวแปรใน Dockerfile หรือสคริปต์ setup ตามที่ต้องการก่อน build
+image นี้จะติดตั้ง dependencies และ custom nodes ตอน build แต่จะยังไม่ดาวน์โหลด models จนกว่าจะ start container ครั้งแรก
 
 ## Push
 
@@ -42,6 +38,8 @@ docker push <dockerhub-username>/comfyui-docker:latest
 docker run --gpus all --rm -it \
   -p 8188:8188 \
   -v comfy_workspace:/workspace \
+  -e HF_TOKEN=$HF_TOKEN \
+  -e CIVITAI_TOKEN=$CIVITAI_TOKEN \
   <dockerhub-username>/comfyui-docker:latest
 ```
 
@@ -52,7 +50,7 @@ docker run --gpus all --rm -it \
 - `UPDATE_REPOS` : `1` หรือ `0` (default `1`)
 - `INSTALL_FLUX_KONTEXT_MODEL` : `1` หรือ `0` (default `1`)
 - `MODEL_STORE_DIR` : ตำแหน่งเก็บ model store ตอน build/runtime (default `/opt/comfy-models`)
-- `HF_TOKEN` / `CIVITAI_TOKEN` : ใช้ตอน build หรือ runtime ถ้าต้องดาวน์โหลด model เพิ่ม
+- `HF_TOKEN` / `CIVITAI_TOKEN` : ใช้ตอน runtime ถ้าต้องดาวน์โหลด model เพิ่ม
 - `COMFY_PORT` : default `8188`
 - `COMFY_EXTRA_ARGS` : default `--reserve-vram 2`
 - `CUDA_RUNTIME_CHECK` : `1` หรือ `0` (default `1`) ตรวจ torch/CUDA ก่อน start
@@ -73,4 +71,4 @@ Workflow build/push อยู่ที่ [`.github/workflows/docker-build-push.
 
 - `/workspace/.comfy_base_setup_done` สำหรับ ComfyUI base
 - `/workspace/.comfy_wan_nodes_setup_done` สำหรับ custom nodes/deps
-- `/opt/comfy-models/.comfy_wan_models_setup_done` สำหรับ models ที่ bake ไว้ใน image
+- `/opt/comfy-models/.comfy_wan_models_setup_done` สำหรับ models ที่ดาวน์โหลดตอน runtime ครั้งแรก
