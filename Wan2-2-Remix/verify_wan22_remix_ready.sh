@@ -10,12 +10,9 @@ INSTALL_NODES="${INSTALL_NODES:-1}"
 INSTALL_MODELS="${INSTALL_MODELS:-1}"
 INSTALL_QWENVL="${INSTALL_QWENVL:-1}"
 INSTALL_QWENVL_MODEL="${INSTALL_QWENVL_MODEL:-1}"
-INSTALL_FLORENCE2="${INSTALL_FLORENCE2:-1}"
-INSTALL_FLORENCE2_MODEL="${INSTALL_FLORENCE2_MODEL:-1}"
 INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}"
 INSTALL_PROMPT_SUPPORT_MODELS="${INSTALL_PROMPT_SUPPORT_MODELS:-1}"
 INSTALL_LLAMACPP="${INSTALL_LLAMACPP:-1}"
-FLORENCE2_MODEL_NAME="${FLORENCE2_MODEL_NAME:-Florence-2-Flux-Large}"
 
 log() { echo "[wan22-verify] $*"; }
 warn() { echo "[wan22-verify][warn] $*" >&2; }
@@ -121,11 +118,6 @@ main() {
         check_python_module "llama_cpp" "llama-cpp-python"
       fi
     fi
-    if [ "$INSTALL_FLORENCE2" = "1" ]; then
-      check_dir "$COMFY_DIR/custom_nodes/ComfyUI-Florence2" "ComfyUI-Florence2"
-      check_python_module "transformers" "transformers"
-    fi
-
     check_sample_input_files
   fi
 
@@ -145,10 +137,6 @@ main() {
 
     if [ "$INSTALL_QWENVL_MODEL" = "1" ]; then
       check_non_empty_dir "$MODEL_STORE_DIR/LLM/Qwen-VL/$QWENVL_MODEL_NAME" "QwenVL model snapshot"
-    fi
-
-    if [ "$INSTALL_FLORENCE2_MODEL" = "1" ]; then
-      check_non_empty_dir "$MODEL_STORE_DIR/LLM/$FLORENCE2_MODEL_NAME" "Florence2 model snapshot"
     fi
 
     if [ "$INSTALL_PROMPT_SUPPORT_MODELS" = "1" ]; then

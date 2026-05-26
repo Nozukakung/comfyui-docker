@@ -12,15 +12,11 @@ INSTALL_NODE_REQUIREMENTS="${INSTALL_NODE_REQUIREMENTS:-1}"
 INSTALL_MODELS="${INSTALL_MODELS:-1}"
 INSTALL_QWENVL="${INSTALL_QWENVL:-1}"
 INSTALL_QWENVL_MODEL="${INSTALL_QWENVL_MODEL:-1}"
-INSTALL_FLORENCE2="${INSTALL_FLORENCE2:-1}"
-INSTALL_FLORENCE2_MODEL="${INSTALL_FLORENCE2_MODEL:-1}"
 INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}"
 INSTALL_PROMPT_SUPPORT_MODELS="${INSTALL_PROMPT_SUPPORT_MODELS:-1}"
 INSTALL_LLAMACPP="${INSTALL_LLAMACPP:-1}"
 QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-abliterated-v2}"
 QWENVL_REPO_ID="${QWENVL_REPO_ID:-prithivMLmods/Qwen3-VL-8B-Instruct-abliterated-v2}"
-FLORENCE2_MODEL_REPO="${FLORENCE2_MODEL_REPO:-gokaygokay/Florence-2-Flux-Large}"
-FLORENCE2_MODEL_NAME="${FLORENCE2_MODEL_NAME:-Florence-2-Flux-Large}"
 UPDATE_REPOS="${UPDATE_REPOS:-1}"
 GIT_CLONE_DEPTH="${GIT_CLONE_DEPTH:-1}"
 GIT_BLOB_FILTER="${GIT_BLOB_FILTER:-1}"
@@ -234,9 +230,6 @@ install_custom_nodes() {
   if [ "$INSTALL_QWENVL" = "1" ]; then
     nodes+=("https://github.com/1038lab/ComfyUI-QwenVL.git|$COMFY_DIR/custom_nodes/ComfyUI-QwenVL|ComfyUI-QwenVL")
   fi
-  if [ "$INSTALL_FLORENCE2" = "1" ]; then
-    nodes+=("https://github.com/kijai/ComfyUI-Florence2.git|$COMFY_DIR/custom_nodes/ComfyUI-Florence2|ComfyUI-Florence2")
-  fi
 
   local entry repo_url target_dir label
   for entry in "${nodes[@]}"; do
@@ -257,9 +250,6 @@ install_custom_nodes() {
 
   if [ "$INSTALL_QWENVL" = "1" ] && [ "$INSTALL_LLAMACPP" = "1" ]; then
     ensure_python_module "llama_cpp" "llama-cpp-python"
-  fi
-  if [ "$INSTALL_FLORENCE2" = "1" ]; then
-    pip_install "transformers>=4.38.0"
   fi
 }
 
@@ -530,14 +520,6 @@ install_models() {
     log "Skipping QwenVL model because INSTALL_QWENVL_MODEL=$INSTALL_QWENVL_MODEL"
   fi
 
-  if [ "$INSTALL_FLORENCE2_MODEL" = "1" ]; then
-    hf_snapshot_to_dir \
-      "$FLORENCE2_MODEL_REPO" \
-      "$MODEL_STORE_DIR/LLM/$FLORENCE2_MODEL_NAME"
-  else
-    log "Skipping Florence2 model because INSTALL_FLORENCE2_MODEL=$INSTALL_FLORENCE2_MODEL"
-  fi
-
   if [ "$INSTALL_PROMPT_SUPPORT_MODELS" = "1" ]; then
     hf_snapshot_to_dir \
       "Salesforce/blip-image-captioning-base" \
@@ -567,13 +549,10 @@ verify_install() {
   INSTALL_MODELS="$INSTALL_MODELS" \
   INSTALL_QWENVL="$INSTALL_QWENVL" \
   INSTALL_QWENVL_MODEL="$INSTALL_QWENVL_MODEL" \
-  INSTALL_FLORENCE2="$INSTALL_FLORENCE2" \
-  INSTALL_FLORENCE2_MODEL="$INSTALL_FLORENCE2_MODEL" \
   INSTALL_FLUX_KONTEXT_MODEL="$INSTALL_FLUX_KONTEXT_MODEL" \
   INSTALL_PROMPT_SUPPORT_MODELS="$INSTALL_PROMPT_SUPPORT_MODELS" \
   INSTALL_LLAMACPP="$INSTALL_LLAMACPP" \
   QWENVL_MODEL_NAME="$QWENVL_MODEL_NAME" \
-  FLORENCE2_MODEL_NAME="$FLORENCE2_MODEL_NAME" \
   "$checker"
 }
 
@@ -587,9 +566,6 @@ print_summary() {
   log "VAE: $MODEL_STORE_DIR/vae"
   log "Model store: $MODEL_STORE_DIR"
   log "QwenVL model: $MODEL_STORE_DIR/LLM/Qwen-VL/$QWENVL_MODEL_NAME"
-  if [ "$INSTALL_FLORENCE2_MODEL" = "1" ]; then
-    log "Florence2 model: $MODEL_STORE_DIR/LLM/$FLORENCE2_MODEL_NAME"
-  fi
   if [ "$INSTALL_FLUX_KONTEXT_MODEL" = "1" ]; then
     log "Flux Kontext model: $MODEL_STORE_DIR/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors"
   fi
