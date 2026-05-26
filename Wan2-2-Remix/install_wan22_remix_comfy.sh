@@ -31,6 +31,8 @@ export PIP_NO_CACHE_DIR="${PIP_NO_CACHE_DIR:-1}"
 export GIT_TERMINAL_PROMPT="${GIT_TERMINAL_PROMPT:-0}"
 export GIT_ASKPASS="${GIT_ASKPASS:-/bin/false}"
 export HF_HOME="${HF_HOME:-$WORKSPACE_DIR/.cache/huggingface}"
+export HF_HUB_CACHE="${HF_HUB_CACHE:-$HF_HOME/hub}"
+export HF_ASSETS_CACHE="${HF_ASSETS_CACHE:-$HF_HOME/assets}"
 
 log() { echo "[wan22-remix] $*"; }
 warn() { echo "[wan22-remix][warn] $*" >&2; }
@@ -411,6 +413,7 @@ hf_snapshot_to_dir() {
   local repo_id="$1"
   local target_dir="$2"
   local token_args=()
+  local tmp_dir parent_dir
 
   if [ -d "$target_dir" ] && { compgen -G "$target_dir/*.safetensors" >/dev/null || compgen -G "$target_dir/*.bin" >/dev/null; }; then
     log "HF snapshot exists, skipping: $target_dir"
@@ -423,11 +426,22 @@ hf_snapshot_to_dir() {
   fi
 
   log "Downloading HF snapshot: $repo_id -> $target_dir"
+  parent_dir="$(dirname "$target_dir")"
+  tmp_dir="$(mktemp -d "$parent_dir/.hf-download.XXXXXX")"
   "$(hf_cmd)" download "$repo_id" \
-    --local-dir "$target_dir" \
+    --local-dir "$tmp_dir" \
     --exclude="*.md" \
     --exclude=".git*" \
     "${token_args[@]}"
+
+  mkdir -p "$target_dir"
+  shopt -s dotglob nullglob
+  for item in "$tmp_dir"/* "$tmp_dir"/.[!.]* "$tmp_dir"/..?*; do
+    [ "$(basename "$item")" = ".cache" ] && continue
+    cp -a "$item" "$target_dir"/
+  done
+  shopt -u dotglob nullglob
+  rm -rf "$tmp_dir"
 }
 
 civitai_download_to_file() {

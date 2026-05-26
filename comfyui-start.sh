@@ -17,6 +17,7 @@ COMFY_EXTRA_ARGS="${COMFY_EXTRA_ARGS:---reserve-vram 2}"
 WAN_SETUP_SCRIPT="/opt/setup/install_wan22_remix_comfy.sh"
 WAN_VERIFY_SCRIPT="/opt/setup/verify_wan22_remix_ready.sh"
 WAN_ASSET_DIR="/opt/setup/assets"
+MODEL_INSTALL_LOCK_FILE="${MODEL_INSTALL_LOCK_FILE:-$WORKSPACE_DIR/.comfy_model_install.lock}"
 
 mkdir -p "$WORKSPACE_DIR"
 
@@ -62,47 +63,52 @@ repair_or_skip_models() {
     return 0
   fi
 
-  if [[ -f "$MODELS_SENTINEL" ]]; then
-    if COMFY_DIR="$COMFY_DIR" \
-      VENV_DIR="$VENV_DIR" \
-      WORKSPACE_DIR="$WORKSPACE_DIR" \
-      MODEL_STORE_DIR="$MODEL_STORE_DIR" \
-      INSTALL_NODES=0 \
-      INSTALL_MODELS=1 \
-      INSTALL_QWENVL="${INSTALL_QWENVL:-1}" \
-      INSTALL_QWENVL_MODEL="${INSTALL_QWENVL_MODEL:-1}" \
-      INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}" \
-      INSTALL_PROMPT_SUPPORT_MODELS="${INSTALL_PROMPT_SUPPORT_MODELS:-1}" \
-      INSTALL_LLAMACPP="${INSTALL_LLAMACPP:-1}" \
-      "$WAN_VERIFY_SCRIPT" >/dev/null 2>&1; then
-      echo "[comfyui] Models already preloaded at $MODEL_STORE_DIR"
-      return 0
+  (
+    exec 9>"$MODEL_INSTALL_LOCK_FILE"
+    flock 9
+
+    if [[ -f "$MODELS_SENTINEL" ]]; then
+      if COMFY_DIR="$COMFY_DIR" \
+        VENV_DIR="$VENV_DIR" \
+        WORKSPACE_DIR="$WORKSPACE_DIR" \
+        MODEL_STORE_DIR="$MODEL_STORE_DIR" \
+        INSTALL_NODES=0 \
+        INSTALL_MODELS=1 \
+        INSTALL_QWENVL="${INSTALL_QWENVL:-1}" \
+        INSTALL_QWENVL_MODEL="${INSTALL_QWENVL_MODEL:-1}" \
+        INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}" \
+        INSTALL_PROMPT_SUPPORT_MODELS="${INSTALL_PROMPT_SUPPORT_MODELS:-1}" \
+        INSTALL_LLAMACPP="${INSTALL_LLAMACPP:-1}" \
+        "$WAN_VERIFY_SCRIPT" >/dev/null 2>&1; then
+        echo "[comfyui] Models already preloaded at $MODEL_STORE_DIR"
+        return 0
+      fi
+
+      echo "[comfyui] Model store is incomplete; repairing missing files"
+    else
+      echo "[comfyui] First run setup: download Wan2.2 Remix models"
     fi
 
-    echo "[comfyui] Model store is incomplete; repairing missing files"
-  else
-    echo "[comfyui] First run setup: download Wan2.2 Remix models"
-  fi
+    COMFY_DIR="$COMFY_DIR" \
+    VENV_DIR="$VENV_DIR" \
+    WORKSPACE_DIR="$WORKSPACE_DIR" \
+    MODEL_STORE_DIR="$MODEL_STORE_DIR" \
+    HF_TOKEN="${HF_TOKEN:-${HUGGINGFACE_HUB_TOKEN:-}}" \
+    CIVITAI_TOKEN="${CIVITAI_TOKEN:-}" \
+    INSTALL_MODELS=1 \
+    INSTALL_NODES=0 \
+    INSTALL_NODE_REQUIREMENTS=0 \
+    UPDATE_REPOS="${UPDATE_REPOS:-1}" \
+    INSTALL_QWENVL="${INSTALL_QWENVL:-1}" \
+    INSTALL_QWENVL_MODEL="${INSTALL_QWENVL_MODEL:-1}" \
+    INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}" \
+    INSTALL_PROMPT_SUPPORT_MODELS="${INSTALL_PROMPT_SUPPORT_MODELS:-1}" \
+    INSTALL_LLAMACPP="${INSTALL_LLAMACPP:-1}" \
+    QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-c_abliterated-v3}" \
+    "$WAN_SETUP_SCRIPT"
 
-  COMFY_DIR="$COMFY_DIR" \
-  VENV_DIR="$VENV_DIR" \
-  WORKSPACE_DIR="$WORKSPACE_DIR" \
-  MODEL_STORE_DIR="$MODEL_STORE_DIR" \
-  HF_TOKEN="${HF_TOKEN:-${HUGGINGFACE_HUB_TOKEN:-}}" \
-  CIVITAI_TOKEN="${CIVITAI_TOKEN:-}" \
-  INSTALL_MODELS=1 \
-  INSTALL_NODES=0 \
-  INSTALL_NODE_REQUIREMENTS=0 \
-  UPDATE_REPOS="${UPDATE_REPOS:-1}" \
-  INSTALL_QWENVL="${INSTALL_QWENVL:-1}" \
-  INSTALL_QWENVL_MODEL="${INSTALL_QWENVL_MODEL:-1}" \
-  INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}" \
-  INSTALL_PROMPT_SUPPORT_MODELS="${INSTALL_PROMPT_SUPPORT_MODELS:-1}" \
-  INSTALL_LLAMACPP="${INSTALL_LLAMACPP:-1}" \
-  QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-c_abliterated-v3}" \
-  "$WAN_SETUP_SCRIPT"
-
-  touch "$MODELS_SENTINEL"
+    touch "$MODELS_SENTINEL"
+  )
 }
 
 if [[ ! -f "$BASE_SETUP_SENTINEL" ]]; then

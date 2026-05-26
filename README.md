@@ -24,7 +24,7 @@ Image นี้ต่อยอดจาก `vastai/pytorch:cuda-12.8.1-auto` แ
 docker build -t <dockerhub-username>/comfyui-docker:latest .
 ```
 
-image นี้จะติดตั้ง dependencies และ custom nodes ตอน build แต่จะยังไม่ดาวน์โหลด models จนกว่าจะ start container ครั้งแรก
+image นี้จะติดตั้ง dependencies และ custom nodes ตอน build แต่จะดาวน์โหลด models ตอน runtime ครั้งแรก
 ตอน runtime จะมี verifier ตรวจ custom nodes, QwenVL config, CUDA stack, และ prompt-support models ที่ workflow ต้องใช้ ถ้าพบว่า model store ขาดไฟล์บางส่วน ระบบจะซ่อมให้ก่อนเริ่ม ComfyUI
 workflow นี้ยังต้องใช้ sample images ใน `ComfyUI/input` และระบบจะคัดลอกไฟล์ตัวอย่างจาก `Wan2-2-Remix/assets` ให้อัตโนมัติ
 
@@ -47,7 +47,7 @@ docker run --gpus all --rm -it \
 
 ## ตัวแปรสำคัญ
 
-- `INSTALL_MODELS` : `1` หรือ `0` (default `1`)
+- `INSTALL_MODELS` : `1` หรือ `0` (default `1`) ถ้าต้องการควบคุมการดาวน์โหลด models ตอน build/runtime
 - `INSTALL_NODES` : `1` หรือ `0` (default `1`)
 - `UPDATE_REPOS` : `1` หรือ `0` (default `1`)
 - `INSTALL_FLUX_KONTEXT_MODEL` : `1` หรือ `0` (default `1`)
