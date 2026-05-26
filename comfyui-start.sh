@@ -102,7 +102,7 @@ repair_or_skip_models() {
     INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}" \
     INSTALL_PROMPT_SUPPORT_MODELS="${INSTALL_PROMPT_SUPPORT_MODELS:-1}" \
     INSTALL_LLAMACPP="${INSTALL_LLAMACPP:-1}" \
-    QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-c_abliterated-v3}" \
+    QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-abliterated-v2}" \
     "$WAN_SETUP_SCRIPT"
 
     touch "$MODELS_SENTINEL"
@@ -134,7 +134,7 @@ if [[ ! -f "$WAN_NODES_SENTINEL" ]]; then
   INSTALL_NODES="${INSTALL_NODES:-1}" \
   UPDATE_REPOS="${UPDATE_REPOS:-1}" \
   INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}" \
-  QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-c_abliterated-v3}" \
+  QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-abliterated-v2}" \
   /opt/setup/install_wan22_remix_comfy.sh
 
   touch "$WAN_NODES_SENTINEL"

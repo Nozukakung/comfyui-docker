@@ -11,7 +11,7 @@ ENV INSTALL_MODELS=1
 ENV INSTALL_NODES=1
 ENV UPDATE_REPOS=1
 ENV INSTALL_FLUX_KONTEXT_MODEL=1
-ENV QWENVL_MODEL_NAME=Qwen3-VL-8B-Instruct-c_abliterated-v3
+ENV QWENVL_MODEL_NAME=Qwen3-VL-8B-Instruct-abliterated-v2
 ENV PYTHONUNBUFFERED=1
 ENV PORTAL_CONFIG="localhost:1111:11111:/:Instance Portal|localhost:8080:18080:/:Jupyter|localhost:8188:8188:/:ComfyUI"
 
@@ -41,7 +41,6 @@ COPY comfy-setup/install_comfyui2.sh /opt/setup/install_comfyui2.sh
 COPY Wan2-2-Remix/install_wan22_remix_comfy.sh /opt/setup/install_wan22_remix_comfy.sh
 COPY Wan2-2-Remix/verify_wan22_remix_ready.sh /opt/setup/verify_wan22_remix_ready.sh
 COPY Wan2-2-Remix/assets /opt/setup/assets
-COPY Wan2-2-Remix/custom_nodes /opt/setup/custom_nodes
 COPY entrypoint.sh /entrypoint.sh
 COPY cuda-runtime-check.sh /opt/setup/cuda-runtime-check.sh
 COPY comfyui-start.sh /opt/supervisor-scripts/comfyui-start.sh

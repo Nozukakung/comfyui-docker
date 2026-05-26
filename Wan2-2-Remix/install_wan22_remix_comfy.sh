@@ -15,8 +15,8 @@ INSTALL_QWENVL_MODEL="${INSTALL_QWENVL_MODEL:-1}"
 INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}"
 INSTALL_PROMPT_SUPPORT_MODELS="${INSTALL_PROMPT_SUPPORT_MODELS:-1}"
 INSTALL_LLAMACPP="${INSTALL_LLAMACPP:-1}"
-QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-c_abliterated-v3}"
-QWENVL_REPO_ID="${QWENVL_REPO_ID:-prithivMLmods/Qwen3-VL-8B-Instruct-c_abliterated-v3}"
+QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-abliterated-v2}"
+QWENVL_REPO_ID="${QWENVL_REPO_ID:-prithivMLmods/Qwen3-VL-8B-Instruct-abliterated-v2}"
 UPDATE_REPOS="${UPDATE_REPOS:-1}"
 GIT_CLONE_DEPTH="${GIT_CLONE_DEPTH:-1}"
 GIT_BLOB_FILTER="${GIT_BLOB_FILTER:-1}"
@@ -236,17 +236,6 @@ install_custom_nodes() {
     IFS='|' read -r repo_url target_dir label <<< "$entry"
     clone_or_update_repo "$repo_url" "$target_dir" "$label"
   done
-
-  local story_tools_src="$SCRIPT_DIR/custom_nodes/ComfyUI-WanStoryShotTools"
-  local story_tools_dst="$COMFY_DIR/custom_nodes/ComfyUI-WanStoryShotTools"
-  if [ -d "$story_tools_src" ]; then
-    log "Installing local custom node: ComfyUI-WanStoryShotTools"
-    rm -rf "$story_tools_dst"
-    mkdir -p "$story_tools_dst"
-    cp -a "$story_tools_src/." "$story_tools_dst/"
-  else
-    warn "Local Story Shot tools not found at $story_tools_src"
-  fi
 
   if [ "$INSTALL_NODE_REQUIREMENTS" != "1" ]; then
     log "Skipping node requirements because INSTALL_NODE_REQUIREMENTS=$INSTALL_NODE_REQUIREMENTS"
@@ -571,7 +560,6 @@ print_summary() {
   log "Done"
   log "ComfyUI: $COMFY_DIR"
   log "Custom nodes: $COMFY_DIR/custom_nodes"
-  log "Story Shot tools: $COMFY_DIR/custom_nodes/ComfyUI-WanStoryShotTools"
   log "Diffusion models: $MODEL_STORE_DIR/diffusion_models"
   log "Text encoders: $MODEL_STORE_DIR/text_encoders"
   log "LoRAs: $MODEL_STORE_DIR/loras"

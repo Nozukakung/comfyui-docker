@@ -5,7 +5,7 @@ WORKSPACE_DIR="${WORKSPACE_DIR:-/workspace}"
 COMFY_DIR="${COMFY_DIR:-$WORKSPACE_DIR/ComfyUI}"
 VENV_DIR="${VENV_DIR:-$WORKSPACE_DIR/venv}"
 MODEL_STORE_DIR="${MODEL_STORE_DIR:-/opt/comfy-models}"
-QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-c_abliterated-v3}"
+QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-abliterated-v2}"
 INSTALL_NODES="${INSTALL_NODES:-1}"
 INSTALL_MODELS="${INSTALL_MODELS:-1}"
 INSTALL_QWENVL="${INSTALL_QWENVL:-1}"
@@ -83,7 +83,7 @@ if model_name not in models:
     raise SystemExit(f"Missing QwenVL model entry: {model_name}")
 entry = models[model_name]
 repo_id = entry.get("repo_id", "")
-if repo_id != "prithivMLmods/Qwen3-VL-8B-Instruct-c_abliterated-v3":
+if repo_id != "prithivMLmods/Qwen3-VL-8B-Instruct-abliterated-v2":
     raise SystemExit(f"Unexpected QwenVL repo_id: {repo_id}")
 PY
 }
@@ -111,8 +111,6 @@ main() {
     check_dir "$COMFY_DIR/custom_nodes/comfyui-mixlab-nodes" "comfyui-mixlab-nodes"
     check_dir "$COMFY_DIR/custom_nodes/ComfyUI_RH_LLM_API" "ComfyUI_RH_LLM_API"
     check_dir "$COMFY_DIR/custom_nodes/Comfyui-PainterVRAM" "Comfyui-PainterVRAM"
-    check_file "$COMFY_DIR/custom_nodes/ComfyUI-WanStoryShotTools/__init__.py" "WanStoryShotTools entrypoint"
-
     if [ "$INSTALL_QWENVL" = "1" ]; then
       check_dir "$COMFY_DIR/custom_nodes/ComfyUI-QwenVL" "ComfyUI-QwenVL"
       check_qwenvl_custom_models
