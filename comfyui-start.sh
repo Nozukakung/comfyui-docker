@@ -36,9 +36,7 @@ link_preloaded_models() {
   fi
 
   if [[ -e "$COMFY_DIR/models" ]]; then
-    if find "$COMFY_DIR/models" \( -type f -o -type l \) -print -quit 2>/dev/null | grep -q .; then
-      return 0
-    fi
+    echo "[comfyui] Replacing existing ComfyUI models directory with symlink to $MODEL_STORE_DIR"
     rm -rf "$COMFY_DIR/models"
   fi
 
