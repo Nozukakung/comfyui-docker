@@ -10,7 +10,6 @@ INSTALL_NODES="${INSTALL_NODES:-1}"
 INSTALL_MODELS="${INSTALL_MODELS:-1}"
 INSTALL_QWENVL="${INSTALL_QWENVL:-1}"
 INSTALL_QWENVL_MODEL="${INSTALL_QWENVL_MODEL:-1}"
-INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}"
 INSTALL_PROMPT_SUPPORT_MODELS="${INSTALL_PROMPT_SUPPORT_MODELS:-1}"
 INSTALL_LLAMACPP="${INSTALL_LLAMACPP:-1}"
 
@@ -127,13 +126,6 @@ main() {
     check_file "$MODEL_STORE_DIR/diffusion_models/Wan2.2_Remix_NSFW_i2v_14b_low_lighting_fp8_e4m3fn_v3.0.safetensors" "Wan low-lighting diffusion model"
     check_file "$MODEL_STORE_DIR/text_encoders/nsfw_wan_umt5-xxl_fp8_scaled.safetensors" "Wan text encoder"
     check_file "$MODEL_STORE_DIR/vae/wan_2.1_vae.safetensors" "Wan VAE"
-
-    if [ "$INSTALL_FLUX_KONTEXT_MODEL" = "1" ]; then
-      check_file "$MODEL_STORE_DIR/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors" "Flux Kontext diffusion model"
-      check_file "$MODEL_STORE_DIR/vae/ae.safetensors" "Flux VAE"
-      check_file "$MODEL_STORE_DIR/text_encoders/clip_l.safetensors" "Flux CLIP-L"
-      check_file "$MODEL_STORE_DIR/text_encoders/t5xxl_fp8_e4m3fn_scaled.safetensors" "Flux T5-XXL"
-    fi
 
     if [ "$INSTALL_QWENVL_MODEL" = "1" ]; then
       check_non_empty_dir "$MODEL_STORE_DIR/LLM/Qwen-VL/$QWENVL_MODEL_NAME" "QwenVL model snapshot"

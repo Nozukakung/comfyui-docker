@@ -12,7 +12,6 @@ INSTALL_NODE_REQUIREMENTS="${INSTALL_NODE_REQUIREMENTS:-1}"
 INSTALL_MODELS="${INSTALL_MODELS:-1}"
 INSTALL_QWENVL="${INSTALL_QWENVL:-1}"
 INSTALL_QWENVL_MODEL="${INSTALL_QWENVL_MODEL:-1}"
-INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}"
 INSTALL_PROMPT_SUPPORT_MODELS="${INSTALL_PROMPT_SUPPORT_MODELS:-1}"
 INSTALL_LLAMACPP="${INSTALL_LLAMACPP:-1}"
 QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-abliterated-v2}"
@@ -484,34 +483,6 @@ install_models() {
     "$MODEL_STORE_DIR/vae" \
     "wan_2.1_vae.safetensors"
 
-  if [ "$INSTALL_FLUX_KONTEXT_MODEL" = "1" ]; then
-    hf_download_to_file \
-      "Comfy-Org/flux1-kontext-dev_ComfyUI" \
-      "split_files/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors" \
-      "$MODEL_STORE_DIR/diffusion_models" \
-      "flux1-dev-kontext_fp8_scaled.safetensors"
-
-    hf_download_to_file \
-      "Comfy-Org/Lumina_Image_2.0_Repackaged" \
-      "split_files/vae/ae.safetensors" \
-      "$MODEL_STORE_DIR/vae" \
-      "ae.safetensors"
-
-    hf_download_to_file \
-      "comfyanonymous/flux_text_encoders" \
-      "clip_l.safetensors" \
-      "$MODEL_STORE_DIR/text_encoders" \
-      "clip_l.safetensors"
-
-    hf_download_to_file \
-      "comfyanonymous/flux_text_encoders" \
-      "t5xxl_fp8_e4m3fn_scaled.safetensors" \
-      "$MODEL_STORE_DIR/text_encoders" \
-      "t5xxl_fp8_e4m3fn_scaled.safetensors"
-  else
-    log "Skipping Flux Kontext models because INSTALL_FLUX_KONTEXT_MODEL=$INSTALL_FLUX_KONTEXT_MODEL"
-  fi
-
   if [ "$INSTALL_QWENVL_MODEL" = "1" ]; then
     hf_snapshot_to_dir \
       "$QWENVL_REPO_ID" \
@@ -549,7 +520,6 @@ verify_install() {
   INSTALL_MODELS="$INSTALL_MODELS" \
   INSTALL_QWENVL="$INSTALL_QWENVL" \
   INSTALL_QWENVL_MODEL="$INSTALL_QWENVL_MODEL" \
-  INSTALL_FLUX_KONTEXT_MODEL="$INSTALL_FLUX_KONTEXT_MODEL" \
   INSTALL_PROMPT_SUPPORT_MODELS="$INSTALL_PROMPT_SUPPORT_MODELS" \
   INSTALL_LLAMACPP="$INSTALL_LLAMACPP" \
   QWENVL_MODEL_NAME="$QWENVL_MODEL_NAME" \
@@ -566,9 +536,6 @@ print_summary() {
   log "VAE: $MODEL_STORE_DIR/vae"
   log "Model store: $MODEL_STORE_DIR"
   log "QwenVL model: $MODEL_STORE_DIR/LLM/Qwen-VL/$QWENVL_MODEL_NAME"
-  if [ "$INSTALL_FLUX_KONTEXT_MODEL" = "1" ]; then
-    log "Flux Kontext model: $MODEL_STORE_DIR/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors"
-  fi
   log "Restart ComfyUI, then hard refresh browser with Ctrl+F5."
 }
 

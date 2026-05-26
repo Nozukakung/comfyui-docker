@@ -50,7 +50,6 @@ docker run --gpus all --rm -it \
 - `INSTALL_MODELS` : `1` หรือ `0` (default `1`) ถ้าต้องการควบคุมการดาวน์โหลด models ตอน build/runtime
 - `INSTALL_NODES` : `1` หรือ `0` (default `1`)
 - `UPDATE_REPOS` : `1` หรือ `0` (default `1`)
-- `INSTALL_FLUX_KONTEXT_MODEL` : `1` หรือ `0` (default `1`)
 - `INSTALL_PROMPT_SUPPORT_MODELS` : `1` หรือ `0` (default `1`) ดาวน์โหลด `clip_interrogator` และ prompt-generator assets ที่บาง node ใช้
 - `INSTALL_LLAMACPP` : `1` หรือ `0` (default `1`) ติดตั้ง `llama-cpp-python` สำหรับ QwenVL prompt enhancer
 - `MODEL_STORE_DIR` : ตำแหน่งเก็บ model store ตอน build/runtime (default `/opt/comfy-models`)
