@@ -25,7 +25,8 @@ docker build -t <dockerhub-username>/comfyui-docker:latest .
 ```
 
 image นี้จะติดตั้ง dependencies และ custom nodes ตอน build แต่จะยังไม่ดาวน์โหลด models จนกว่าจะ start container ครั้งแรก
-ตอน runtime จะมี verifier ตรวจ custom nodes, QwenVL config, CUDA stack, และ prompt-support models ที่ workflow ต้องใช้ ถ้าขาดจะ fail ทันที
+ตอน runtime จะมี verifier ตรวจ custom nodes, QwenVL config, CUDA stack, และ prompt-support models ที่ workflow ต้องใช้ ถ้าพบว่า model store ขาดไฟล์บางส่วน ระบบจะซ่อมให้ก่อนเริ่ม ComfyUI
+workflow นี้ยังต้องใช้ sample images ใน `ComfyUI/input` และระบบจะคัดลอกไฟล์ตัวอย่างจาก `Wan2-2-Remix/assets` ให้อัตโนมัติ
 
 ## Push
 

@@ -14,6 +14,9 @@ RUN_SCRIPT_PATH="${RUN_SCRIPT_PATH:-$WORKSPACE_DIR/run_comfy.sh}"
 COMFY_PORT="${COMFY_PORT:-${PORT:-8188}}"
 COMFY_LISTEN="${COMFY_LISTEN:-0.0.0.0}"
 COMFY_EXTRA_ARGS="${COMFY_EXTRA_ARGS:---reserve-vram 2}"
+WAN_SETUP_SCRIPT="/opt/setup/install_wan22_remix_comfy.sh"
+WAN_VERIFY_SCRIPT="/opt/setup/verify_wan22_remix_ready.sh"
+WAN_ASSET_DIR="/opt/setup/assets"
 
 mkdir -p "$WORKSPACE_DIR"
 
@@ -39,6 +42,67 @@ link_preloaded_models() {
   fi
 
   ln -s "$MODEL_STORE_DIR" "$COMFY_DIR/models"
+}
+
+ensure_sample_input_files() {
+  local asset
+
+  [[ -d "$WAN_ASSET_DIR" ]] || return 0
+  mkdir -p "$COMFY_DIR/input"
+
+  for asset in "$WAN_ASSET_DIR"/*; do
+    [[ -f "$asset" ]] || continue
+    cp -f "$asset" "$COMFY_DIR/input/$(basename "$asset")"
+  done
+}
+
+repair_or_skip_models() {
+  if [[ "${INSTALL_MODELS:-1}" != "1" ]]; then
+    echo "[comfyui] Skipping model download because INSTALL_MODELS=${INSTALL_MODELS:-1}"
+    return 0
+  fi
+
+  if [[ -f "$MODELS_SENTINEL" ]]; then
+    if COMFY_DIR="$COMFY_DIR" \
+      VENV_DIR="$VENV_DIR" \
+      WORKSPACE_DIR="$WORKSPACE_DIR" \
+      MODEL_STORE_DIR="$MODEL_STORE_DIR" \
+      INSTALL_NODES=0 \
+      INSTALL_MODELS=1 \
+      INSTALL_QWENVL="${INSTALL_QWENVL:-1}" \
+      INSTALL_QWENVL_MODEL="${INSTALL_QWENVL_MODEL:-1}" \
+      INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}" \
+      INSTALL_PROMPT_SUPPORT_MODELS="${INSTALL_PROMPT_SUPPORT_MODELS:-1}" \
+      INSTALL_LLAMACPP="${INSTALL_LLAMACPP:-1}" \
+      "$WAN_VERIFY_SCRIPT" >/dev/null 2>&1; then
+      echo "[comfyui] Models already preloaded at $MODEL_STORE_DIR"
+      return 0
+    fi
+
+    echo "[comfyui] Model store is incomplete; repairing missing files"
+  else
+    echo "[comfyui] First run setup: download Wan2.2 Remix models"
+  fi
+
+  COMFY_DIR="$COMFY_DIR" \
+  VENV_DIR="$VENV_DIR" \
+  WORKSPACE_DIR="$WORKSPACE_DIR" \
+  MODEL_STORE_DIR="$MODEL_STORE_DIR" \
+  HF_TOKEN="${HF_TOKEN:-${HUGGINGFACE_HUB_TOKEN:-}}" \
+  CIVITAI_TOKEN="${CIVITAI_TOKEN:-}" \
+  INSTALL_MODELS=1 \
+  INSTALL_NODES=0 \
+  INSTALL_NODE_REQUIREMENTS=0 \
+  UPDATE_REPOS="${UPDATE_REPOS:-1}" \
+  INSTALL_QWENVL="${INSTALL_QWENVL:-1}" \
+  INSTALL_QWENVL_MODEL="${INSTALL_QWENVL_MODEL:-1}" \
+  INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}" \
+  INSTALL_PROMPT_SUPPORT_MODELS="${INSTALL_PROMPT_SUPPORT_MODELS:-1}" \
+  INSTALL_LLAMACPP="${INSTALL_LLAMACPP:-1}" \
+  QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-c_abliterated-v3}" \
+  "$WAN_SETUP_SCRIPT"
+
+  touch "$MODELS_SENTINEL"
 }
 
 if [[ ! -f "$BASE_SETUP_SENTINEL" ]]; then
@@ -72,28 +136,8 @@ if [[ ! -f "$WAN_NODES_SENTINEL" ]]; then
   touch "$WAN_NODES_SENTINEL"
 fi
 
-if [[ "${INSTALL_MODELS:-1}" = "1" && ! -f "$MODELS_SENTINEL" ]]; then
-  echo "[comfyui] First run setup: download Wan2.2 Remix models"
-  COMFY_DIR="$COMFY_DIR" \
-  VENV_DIR="$VENV_DIR" \
-  WORKSPACE_DIR="$WORKSPACE_DIR" \
-  MODEL_STORE_DIR="$MODEL_STORE_DIR" \
-  HF_TOKEN="${HF_TOKEN:-${HUGGINGFACE_HUB_TOKEN:-}}" \
-  CIVITAI_TOKEN="${CIVITAI_TOKEN:-}" \
-  INSTALL_MODELS=1 \
-  INSTALL_NODES=0 \
-  INSTALL_NODE_REQUIREMENTS=0 \
-  UPDATE_REPOS="${UPDATE_REPOS:-1}" \
-  INSTALL_FLUX_KONTEXT_MODEL="${INSTALL_FLUX_KONTEXT_MODEL:-1}" \
-  QWENVL_MODEL_NAME="${QWENVL_MODEL_NAME:-Qwen3-VL-8B-Instruct-c_abliterated-v3}" \
-  /opt/setup/install_wan22_remix_comfy.sh
-
-  touch "$MODELS_SENTINEL"
-elif [[ "${INSTALL_MODELS:-1}" = "1" ]]; then
-  echo "[comfyui] Models already preloaded at $MODEL_STORE_DIR"
-elif [[ "${INSTALL_MODELS:-1}" != "1" ]]; then
-  echo "[comfyui] Skipping model download because INSTALL_MODELS=${INSTALL_MODELS:-1}"
-fi
+repair_or_skip_models
+ensure_sample_input_files
 
 link_preloaded_models
 

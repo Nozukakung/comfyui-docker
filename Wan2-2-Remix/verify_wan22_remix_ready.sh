@@ -88,6 +88,11 @@ if repo_id != "prithivMLmods/Qwen3-VL-8B-Instruct-c_abliterated-v3":
 PY
 }
 
+check_sample_input_files() {
+  check_file "$COMFY_DIR/input/example.png" "workflow sample image"
+  check_file "$COMFY_DIR/input/ChatGPT Image 20 พ.ค. 2569 17_45_39.png" "workflow reference image"
+}
+
 main() {
   log "Checking base paths"
   check_dir "$COMFY_DIR" "ComfyUI directory"
@@ -115,6 +120,8 @@ main() {
         check_python_module "llama_cpp" "llama-cpp-python"
       fi
     fi
+
+    check_sample_input_files
   fi
 
   if [ "$INSTALL_MODELS" = "1" ]; then

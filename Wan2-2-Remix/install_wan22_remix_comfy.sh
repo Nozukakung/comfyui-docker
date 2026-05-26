@@ -70,6 +70,7 @@ hf_cmd() {
 require_base_paths() {
   [ -d "$COMFY_DIR" ] || fail "ComfyUI directory not found: $COMFY_DIR"
   mkdir -p \
+    "$COMFY_DIR/input" \
     "$COMFY_DIR/custom_nodes" \
     "$MODEL_STORE_DIR/diffusion_models" \
     "$MODEL_STORE_DIR/text_encoders" \
@@ -78,6 +79,20 @@ require_base_paths() {
     "$MODEL_STORE_DIR/vae" \
     "$HF_HOME"
   command -v git >/dev/null 2>&1 || fail "git not found"
+}
+
+install_sample_input_files() {
+  local asset_dir="$SCRIPT_DIR/assets"
+  local target_dir="$COMFY_DIR/input"
+  local asset
+
+  [ -d "$asset_dir" ] || return 0
+  mkdir -p "$target_dir"
+
+  for asset in "$asset_dir"/*; do
+    [ -f "$asset" ] || continue
+    cp -f "$asset" "$target_dir/$(basename "$asset")"
+  done
 }
 
 clone_or_update_repo() {
@@ -558,6 +573,7 @@ print_summary() {
 main() {
   require_base_paths
   install_custom_nodes
+  install_sample_input_files
   write_qwenvl_custom_models
   disable_duplicate_custom_nodes
   patch_videohelpersuite_frontend
